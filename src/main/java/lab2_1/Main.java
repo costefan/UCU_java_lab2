@@ -18,7 +18,6 @@ public class Main {
             try {
                 mailSender.sendMail(mailInfo);
             } catch (Exception e) {
-
                 log.error(e.getMessage());
                 log.info("this is not so important message");
                 log.debug("totally not important only for the developers");
