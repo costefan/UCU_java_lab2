@@ -1,20 +1,35 @@
 package mySpring;
 
-import factory.InjectRandomInt;
+import lab2_1.MailGenerator;
 import lombok.SneakyThrows;
+import org.reflections.Reflections;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
+import java.util.Set;
 
 public class ObjectFactory {
     private static ObjectFactory ourInstance = new ObjectFactory();
     private Config config = new JavaConfig();
-    private Random random = new Random();
     private List<ObjectConfigurator> objectConfigurators = new ArrayList<>();
 
+
     public static ObjectFactory getInstance() {
+        return ourInstance;
+    }
+
+    @SneakyThrows
+    public ObjectFactory addConfigurators() {
+        Reflections scanner = new Reflections("mySpring");
+        Set<Class<? extends ObjectConfigurator>> classes = scanner.getSubTypesOf(ObjectConfigurator.class);
+        for (Class<? extends ObjectConfigurator> clazz: classes) {
+            if (!Modifier.isAbstract(clazz.getModifiers())) {
+                this.objectConfigurators.add(clazz.newInstance());
+            }
+
+        }
         return ourInstance;
     }
 
@@ -28,24 +43,17 @@ public class ObjectFactory {
         }
         T o = type.newInstance();
 
-        Field[] fields = type.getDeclaredFields();
-        for (Field field : fields) {
-
-            InjectRandomInt annotation = field.getAnnotation(InjectRandomInt.class);
-            if (annotation != null) {
-                int min = annotation.min();
-                int max = annotation.max();
-                int randomIntValue = random.nextInt(max - min) + min;
-                field.setAccessible(true);
-                field.set(o,randomIntValue);
-
-            }
-        }
+        if (!objectConfigurators.isEmpty())
+            this.configureObject(o, type);
 
         return o;
     }
 
-    public void configureObject(Object object) {
-
+    @SneakyThrows
+    public <T> void configureObject(T object, Class<T> type) {
+        Field[] fields = type.getDeclaredFields();
+        for (ObjectConfigurator conf: this.objectConfigurators) {
+            conf.configurate(object, fields);
+        }
     }
 }

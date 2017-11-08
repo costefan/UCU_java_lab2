@@ -1,7 +1,6 @@
 package mySpring;
 
 
-import factory.InjectRandomInt;
 import lombok.Getter;
 
 public class IRobot {

@@ -1,6 +1,5 @@
 package mySpring;
 
-import factory.InjectRandomInt;
 
 public class CleanerImpl implements Cleaner {
     @InjectRandomInt(min = 3, max = 7)
